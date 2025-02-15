@@ -20,7 +20,7 @@ class Card:
         self.suit=suit
         self.rank=rank
        
-    def __str__(self):     # return a string representation of the card
+    def __str__(self):      # return a string representation of the card
         return f"{self.rank} of {self.suit}"    
     
     
@@ -28,11 +28,16 @@ class Card:
     
 
 class Deck:
+    
     # represent a deck of 52 automatically shuffled cards
     def __init__(self):
         self.deck=[Card(suit,rank) for suit in SUITS for rank in RANKS]
-        shuffle(self.deck)   # shuffle deck to ensure randomness      
-    def deal_card(self):   # returns a single card from the deck
+        
+         # shuffle deck to ensure randomness
+        shuffle(self.deck)    
+        
+         #  returns a single card from the deck    
+    def deal_card(self): 
         return self.deck.pop()    
     
     
@@ -40,20 +45,23 @@ class Deck:
     
        
 class Hand:
+    
     # represent a player's or dealer's hand
     # track value in the hand and how many aces are in it
     def __init__(self):
         self.cards=[]
         self.value=0
         self.num_of_aces=0
+        
+         # add card to the hand and updates the hand total value and adjusting aces
     def add_card(self,card):
-        # add card to the hand and updates the hand total value and adjusting aces
         self.cards.append(card)
         self.value+=VALUES[card.rank]
         if card.rank=="Ace":
             self.num_of_aces+=1
+            
+             # adjust ace value if hand exceeds 21 and handling it
         self.adjust_aces() 
-        # adjust ace value if hand exceeds 21 and handling it 
     def adjust_aces(self):   
         ''' If the value of the hand exceeds 21 and there are Aces counted as 11,
         convert them to 1 by subtracting 10 from the total'''
@@ -67,19 +75,22 @@ class Hand:
             
                     
 class Bets:
+    
     # manage player's betting money
     def __init__(self):
         self.total=100
         self.bet=0
-    def win_bet(self): # increase total money by the current bet amount
+    def win_bet(self):       # increase total money by the current bet amount
         self.total+=self.bet
-    def lose_bet(self):   # decrease total money by the current bet amount
+    def lose_bet(self):      # decrease total money by the current bet amount
           self.total-=self.bet      
           
           
           
 
 def take_bet(player_bet):
+    
+    # make the user entering his bet amount and it gotta be a valid amount
     while True:
         try:
             user_bet=int(input(f"Enter your bet ( Available: {player_bet.total})"))
@@ -95,10 +106,15 @@ def take_bet(player_bet):
                   
                 
 def display_hand(name,hand,hide_first=False):
+    
+    # displaying cards in the hand
+    # if hide_first is true, show the first card as [hidden card] (used for dealer's initial display)
     print(f"\n{name}'s Hand" , end=" ")
     if hide_first:
+        # hide the first card. reveal the rest
         print(f"[Hidden card]", ", ".join(str(card) for card in hand.cards[1:] ) )
     else:
+        # show all cards with total value
             print( ", ".join(str(card) for card in hand.cards) , f" (value: {hand.value})" )
             
             
@@ -107,15 +123,21 @@ def display_hand(name,hand,hide_first=False):
          
          
 def check_blackjack(hand):
+    
+    # return True if a hand is exactly two cards and got a value of 21 (a blackJack)
     return len(hand.cards)==2 and hand.value==21
 
 
 
 def hit (deck , hand):
+    
+    #deal one card from the deck and add it to the hand
     hand.add_card(deck.deal_card())
     
     
 def player_turn(deck,player_hand,player_bet):
+    
+    # allows player to keep hitting until they choose to stand or their hand value exceeds 21
     while player_hand.value<21:
         choice=input("[HIT | STAND]").lower()
         if choice == "hit":
@@ -130,8 +152,11 @@ def player_turn(deck,player_hand,player_bet):
             
 
 def dealer_turn(deck,dealer_hand)  :
+    
+    # dealer draws cards until dealer's hand value is at least 17
     while dealer_hand.value<17:
         hit(deck,dealer_hand)
+        # show the dealer's hand after finishing drawing
     display_hand("dealer",dealer_hand)                   
              
         
@@ -139,11 +164,14 @@ def dealer_turn(deck,dealer_hand)  :
         
         
 def selecting_winner(player_hand, dealer_hand,player_bet):
+    
+    # comparing between player and dealer both final handsand decides a winner
+    # updates the player total money based on the result 
     if player_hand.value>21:
         print("player busts! dealer wins!")
         player_bet.lose_bet()
     elif dealer_hand.value>21 or player_hand.value>dealer_hand.value:
-         print("player win!")
+         print("player wins!")
          player_bet.win_bet()
     elif player_hand.value<dealer_hand.value:
         print("dealer wins!")
@@ -157,41 +185,74 @@ def selecting_winner(player_hand, dealer_hand,player_bet):
                
                 
 def play_blackjack():
-    print("WELCOME TO BLACKJACK!")
-    player_bet=Bets()
-    while player_bet.total>0:
-        deck=Deck()
-        player_hand=Hand()
-        dealer_hand=Hand()
-        take_bet(player_bet)
-        for _ in range(2):
+    
+    # main function to play the blackJack game. initialize player's money.
+    # loops through rounds until the player is out of money or chooses to quit.
+    print("WELCOME TO BLACKJACK !")
+    
+    #creating a Bet object
+    player_bet=Bets() 
+    
+    # continue playing as long as the player got money
+    while player_bet.total>0: 
+        
+        #creating a Deck object
+        deck=Deck()  
+        
+         #creating a player's hand object   
+        player_hand=Hand()  
+        
+         #creating a dealer's hand object
+        dealer_hand=Hand() 
+        
+         # make the player placing a bet   
+        take_bet(player_bet)  
+        
+         # deal two cards to both player and dealer
+        for _ in range(2):   
             player_hand.add_card(deck.deal_card())
             dealer_hand.add_card(deck.deal_card())
+            
+            # show player's hand and dealer's hand with first card hidden 
         display_hand("player",player_hand)
         display_hand("dealer",dealer_hand,hide_first=True) 
+        
+        # check if the player got a natural blackJack
         if check_blackjack(player_hand):
             print("BLACKJACK! PLAYER WINS!")
             player_bet.win_bet()
         else:
+            
+            #player take their turn (hit or stand)
             player_turn(deck,player_hand,player_bet) 
+            # if player busts, reveal dealer's hand
             if player_hand.value>21:
                 display_hand("dealer",dealer_hand)
                 selecting_winner(player_hand,dealer_hand,player_bet)
+                
+                # if player stands and has not busted, dealer takes turn
             else:
                     print("dealer's turn..")
                     dealer_turn(deck,dealer_hand) 
                     selecting_winner(player_hand,dealer_hand,player_bet)
             
-        print(f"player's money: {player_bet.total}")   
+            # show updated money total
+        print(f"player's money: {player_bet.total}")  
+        
+        # if player running out of money, end the game 
         if player_bet.total==0:
             print("out of money! GAME OVER")
             break
+        
+        # ask if the player wants to play again 
         again=input("\nPlay again?  (Y/N)").lower()
         if again == 'n':
             break
-        system("cls" if name == "nt" else "clear")  # Clear screen based on the operating system
+        system("cls" if name == "nt" else "clear")     # Clear screen based on the operating system
         
         
+        
+        # start the game
 play_blackjack()            
              
                      
