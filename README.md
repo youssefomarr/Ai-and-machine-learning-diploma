@@ -1,1 +1,1 @@
-# Ai-and-machine-learning-diploma
+# Data_Science_and_Ai_diploma
